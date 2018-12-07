@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/writ312/ToS-AddonManager-vuesax.svg?branch=master)](https://travis-ci.org/writ312/ToS-AddonManager-vuesax)
 # tos-addonmanager
 
 > An electron-vue project
