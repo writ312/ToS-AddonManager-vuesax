@@ -38,7 +38,7 @@
     
       <vs-button  size="large" type="border" v-show="addon.isInstalled" color="danger" :class="{'is-loading':addon.isDownloading}"  @click="uninstall">Uninstall</vs-button>
       </vs-row>
-    </div>
+    </div>  
     </vs-card>
 </template>
 
@@ -67,7 +67,7 @@ export default {
     },
     statusIcon:function(){
       if(this.status === 'primary'){
-        return 'new_releases '
+        return 'new_releases'
       }else{
         return 'done'
       }
@@ -75,8 +75,6 @@ export default {
   },
   watch:{
     activeTab:function(val){
-          console.log(this)
-      // console.log(self.$refs)
       if(val == 2){
         this.$store.dispatch('getReadme',{addon:this.addon})
         this.$parent.isReadmeModalActive = true
@@ -85,7 +83,7 @@ export default {
         })
         return
       }
-        this.beforeActiveTab = this.activeTab
+      this.beforeActiveTab = this.activeTab
     }
   },
   created:function(){
@@ -117,7 +115,6 @@ export default {
     },
     changeTab(val){
       this.activeTab = val
-      console.log(val)
     }
   }
 }

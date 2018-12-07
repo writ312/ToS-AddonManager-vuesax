@@ -3,7 +3,7 @@
     <side-bar></side-bar>
     <!-- <landing-page></landing-page> -->
     <addon-view></addon-view>
-    <!-- <toast position="ne"></toast> -->
+    <toast position="ne"></toast>
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default {
     },
      created:function(){
       this.$store.dispatch('getLocales',this.$translate)
-      this.$store.dispatch('initAddon')
+      this.$store.dispatch('initAddon',this.$translate)
      }
   }
 </script>

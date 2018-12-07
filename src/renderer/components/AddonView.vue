@@ -11,6 +11,11 @@
       <vs-col type="flex" vs-justify="center" vs-align="center" vs-w="4">    
       </vs-col>
     </vs-row> -->
+     <vs-popup class="holamundo"  title="Readme" :active.sync="isReadmeModalActive">
+      <p>
+        {{$store.state.Addon.readme}}
+      </p>
+    </vs-popup>
   </div>
 </template>
 
@@ -18,24 +23,20 @@
 import AddonCard from '@/components/AddonView/AddonCard'
 // import SettingModal from './Addon/Setting'
 // import ReadmeModal from './Addon/Readme'
-import { mapGetters, mapActions } from 'Vuex'
+// import { mapGetters, mapActions } from 'vuex'
   export default {
     name: 'addon-view',
     data(){
-        return {
-            sort:"name",
-            searchQuery:null,
-            isSettingModalActive : false,
-            isReadmeModalActive : false,
-            detailAddonIndex : null,
-            isShowOnlyUpdateble : false,
-        }
+      return {
+          isReadmeModalActive : false
+      }
     },
     components: { AddonCard },
     computed:{
       Addons() {
         return this.$store.state.Addon.addons
       },
+
       filteredAddons(){
         let data = this.$store.state.Addon.addons
         // console.log(data)
@@ -57,7 +58,7 @@ import { mapGetters, mapActions } from 'Vuex'
         // return this.$store.getters('getTreeOfSaviorDirectory')
         
       // }
-      ...mapGetters(['getTreeOfSaviorDirectory'])
+      // ...mapGetters(['getTreeOfSaviorDirectory'])
     },
     methods: {
       open () {

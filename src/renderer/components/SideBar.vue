@@ -37,7 +37,7 @@
             <vs-checkbox  color="success" v-model="filters.installed">Installed</vs-checkbox>   
         </li>    
         <li>    
-            <vs-checkbox  color="primary" v-model="filters.updatable">Updatable<div class="badge"><span class='badgeNumber'>{{getUpdatableAddonListLength}}</span></div></vs-checkbox>
+            <vs-checkbox  color="primary" v-model="filters.updatable">Updatable<div class="badge"><span class='badgeNumber'>{{$store.getters.getUpdatableAddonListLength}}</span></div></vs-checkbox>
         </li>    
         <li>
             <vs-checkbox color="dark" v-model="filters.notinstalled">Not Installed</vs-checkbox>
@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'Vuex'
+// import { mapGetters, mapActions } from 'Vuex'
 export default {
   data:()=>({
     version:'3.2',
@@ -129,7 +129,7 @@ export default {
         this.selectLanguage = this.$store.state.Addon.setting.selectLanguage || 'en'
         return Object.keys(this.$store.state.Locales.locales)
     },
-    ...mapGetters(['getUpdatableAddonList','getUpdatableAddonListLength','getFilterdAddonList'])
+    // ...mapGetters(['getUpdatableAddonList','getUpdatableAddonListLength','getFilterdAddonList'])
   },
   methods:{
     changeLanguage(lang){
@@ -142,7 +142,7 @@ export default {
         this.$store.commit('updateOrder',item.value)
     },
     updateInstalledAddons(){
-        console.log(this.getFilterdAddonList)
+        console.log(this.$store.getters.getFilterdAddonList)
     }
     },
     watch:{
