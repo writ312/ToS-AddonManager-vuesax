@@ -26,31 +26,23 @@
     </vs-sidebar-item>
 
     <vs-divider position="left" >
-        Filter
+        Filters
     </vs-divider>
 
     <vs-sidebar-item >
         <vs-input icon="search" placeholder="Search" v-model="searchQuery"/>
     </vs-sidebar-item>
     <ul  class="leftx">
-            <li>
-            <vs-checkbox  color="success" v-model="filter.installed">Installed</vs-checkbox>   
-            </li>    
-            <li>
-                <vs-checkbox  color="primary" v-model="filter.updatable">
-                    Updatable
-                    <div class="badge">
-                        <span class='badgeNumber'>
-                        </span>
-                    </div>
-                </vs-checkbox>
-            </li>    
-            <li>
-                <vs-checkbox color="dark" v-model="filter.notintalled">Not Installed</vs-checkbox>
-            </li>    
-        </ul>
-        
-    
+        <li>
+            <vs-checkbox  color="success" v-model="filters.installed">Installed</vs-checkbox>   
+        </li>    
+        <li>    
+            <vs-checkbox  color="primary" v-model="filters.updatable">Updatable<div class="badge"><span class='badgeNumber'>{{getUpdatableAddonListLength}}</span></div></vs-checkbox>
+        </li>    
+        <li>
+            <vs-checkbox color="dark" v-model="filters.notinstalled">Not Installed</vs-checkbox>
+        </li>    
+    </ul>
     <vs-divider position="left" >
         Sort
     </vs-divider>
@@ -100,8 +92,9 @@
     </vs-sidebar-item>  
 
     <div class="footer-sidebar" slot="footer">
-        <!-- <vs-button icon="reply" color="danger" type="flat">log out</vs-button> -->
-        <!-- <vs-button icon="settings" color="primary" type="border"></vs-button> -->
+        <!-- <vs-button icon="notifications" color="primary" type="border"></vs-button>
+        <vs-button icon="settings" color="primary" type="border"></vs-button>
+        <vs-button icon="cached" color="primary" type="border"></vs-button> -->
     </div>
 
     </vs-sidebar>
@@ -117,10 +110,10 @@ export default {
     active:true,
     selectLanguage:'en',
     searchQuery:'',
-    filter:{
+    filters:{
         installed:true,
         updatable:true,
-        notintalled:true
+        notinstalled:true
     },
     orderOption:'Name-Asc',
     orderOptionList:[
@@ -136,7 +129,7 @@ export default {
         this.selectLanguage = this.$store.state.Addon.setting.selectLanguage || 'en'
         return Object.keys(this.$store.state.Locales.locales)
     },
-    // ...mapGetters(['getUpdatableAddon'])
+    ...mapGetters(['getUpdatableAddonList','getUpdatableAddonListLength','getFilterdAddonList'])
   },
   methods:{
     changeLanguage(lang){
@@ -146,12 +139,24 @@ export default {
     },
     changeSortType(item){
         this.orderOption = item.text
-        // this.$store.dispatch
+        this.$store.commit('updateOrder',item.value)
     },
     updateInstalledAddons(){
-
+        console.log(this.getFilterdAddonList)
     }
-  }
+    },
+    watch:{
+        filters:{
+            handler:function(val){
+                console.log(val)
+                this.$store.commit('updateFilters',val)
+            },
+            deep:true
+        },
+        searchQuery:function(word){
+            this.$store.commit('updateSearchQuery',word)
+        }
+    }
 }
 </script>
 
@@ -183,9 +188,9 @@ export default {
 }
 
 .footer-sidebar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	/* display: flex; */
+	align-items: right;
+	/* justify-content: space-between; */
 	width: 100%;
 }
 
@@ -202,13 +207,19 @@ export default {
   flex-direction: column;
 } */
 div.con-vs-checkbox {
-    margin-left: 12px;
+    margin-left: 1.2rem;
     justify-content: left;
+    padding-top:0.2rem;
+    padding-bottom: 0.2rem;
+}
+span.vs-checkbox--check{
+    width: 25px;
+    height:25px;
 }
 .badge {
   position: absolute;
   display: inline-block;
-  top: -8px;
+  top: 0px;
   width: 15px;
   height: 15px;
   border-radius: 50%;
@@ -229,8 +240,5 @@ button.vs-con-dropdown{
     border: 1px solid lightgray;
     border-radius: 6px;
 }
-span.vs-checkbox--check{
-    width: 25px;
-    height:25px;
-}
+
 </style>

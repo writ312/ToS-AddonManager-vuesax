@@ -7,7 +7,13 @@ const state = {
   addons: [],
   setting: {},
   isLoading:true,
-  detailAddon : {}
+  detailAddon : {},
+  filters:{
+    installed:true,
+    updatable:true,
+    notinstalled:true
+  },
+  searchQuery:''
 }
 const mutations = {
     setAddonList(state,addons){
@@ -58,12 +64,29 @@ const mutations = {
         state.setting.selectLanguage = selectLanguage
         addonRetiriver.setInstalledAddons(state)
     },
-    changeAddonVersion(state,{index,version}){
+    updateAddonVersion(state,{index,version}){
         state.addons[index].installedFileVersion = version
         state.addons[index].isInstalled = true
+    },
+    updateSearchQuery(state,word){
+        state.searchQuery = word.toUpperCase()
+    },
+    updateFilters(state,{installed,updatable,notinstalled}){
+        state.filters = {
+            installed:installed,
+            updatable:updatable,
+            notinstalled:notinstalled
+            }
+    },
+    updateOrder(state,order){
+        state.Addon.addons.sort((a,b)=>{
+            let isAsc = this.sort.includes('-')
+            let type = this.sort.replace('-','')
+            let nameA = a[type].toUpperCase()
+            let nameB = b[type].toUpperCase()
+            return (isAsc?-1:1)*((nameA<nameB)?-1:(nameA>nameB)?1:0)
+       })
     }
-    
-    
 }
 
 const actions = {
@@ -73,7 +96,6 @@ const actions = {
         commit('setSettingData',(storageData.setting && storageData.setting.saveDataType === 'vue')?storageData.setting: await addonRetiriver.getSettingFile())
         commit('setInstalledAddonList',installedAddons )
         commit('setAddonList',await addonRetiriver.getAddonList(installedAddons))
-        state.isLoading = false
         if(state.setting.treeOfSaviorDirectory){
             addonRetiriver.installDependencies(state.setting.treeOfSaviorDirectory)
         }
@@ -95,7 +117,7 @@ const actions = {
                     return fileName.match('_'+addon.file+'-')
                 })
                 if(findAddon){
-                    commit('changeAddonVersion',{index:index,version:findAddon.match(/-(v.*)\.ipf/)[1]})
+                    commit('updateAddonVersion',{index:index,version:findAddon.match(/-(v.*)\.ipf/)[1]})
                     
                     try {
                         if(semver.gt(addon.fileVersion, addon.installedFileVersion)) {
@@ -148,13 +170,35 @@ const actions = {
 }
 
 const getters = {
-    getTreeOfSaviorDirectory : state=>state.setting.treeOfSaviorDirectory
+    getTreeOfSaviorDirectory : state=>state.setting.treeOfSaviorDirectory,
+    getUpdatableAddonList : (state)=>{
+        return state.addons.filter(addon=>addon.isUpdateAvailable)
+    },    
+    getUpdatableAddonListLength:(state,getters)=>{
+        return getters.getUpdatableAddonList.length
+    },
+    getFilterdAddonList:state=>{
+        let filters = state.filters,
+            isInstalled = filters.installed,
+            isUpdatable = filters.updatable,
+            isNotInstalled = filters.notinstalled,
+            searchQuery = state.searchQuery
+            console.log(isInstalled,isUpdatable,isNotInstalled)
+        return state.addons.filter(addon=>{
+            if(addon.isInstalled === isInstalled || addon.isUpdateAvailable === isUpdatable || !addon.isInstalled === isNotInstalled){
+                console.log(addon.name,addon.isInstalled,addon.isUpdateAvailable)
+                return searchQuery === '' || addon.name.toUpperCase().includes(searchQuery) || addon.author.toUpperCase().includes(searchQuery) || addon.tags.find(tag=>{tag.toUpperCase().includes(searchQuery)})
+            }else{
+                return false
+            }
+        })
+    }
 }
 
 export default {
   state,
   mutations,
   actions,
-//   getters
+  getters
  }
  

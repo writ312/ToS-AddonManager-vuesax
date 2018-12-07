@@ -18,16 +18,16 @@ const state = {
 }
 
 const mutations = {
-    async getLocales(state,translater){
-        state.locales = await getLoacleFiles()
+    async getLocales(state,{translater,locales}){
+        state.locales = locales
         translater.setLocales(state.locales)
     }
 }
 
 const actions = {
-    getLocales({commit},translater){
+    async getLocales({commit},translater){
         console.log('call actions')
-        commit('getLocales',translater)
+        commit('getLocales',{translater:translater,locales:await getLoacleFiles()})
     },
 }
 

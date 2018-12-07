@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- <side-bar></side-bar> -->
+    <side-bar></side-bar>
     <!-- <landing-page></landing-page> -->
     <addon-view></addon-view>
     <!-- <toast position="ne"></toast> -->
