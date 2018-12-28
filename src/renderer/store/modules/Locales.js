@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-async function getLoacleFiles(){
-    console.log('get locales files')
+async function fetchLoacleFiles(){
+    console.log('Fetch locales files')
     let locales = {}
     let localesList = await axios.get('https://raw.githubusercontent.com/JTosAddon/Tree-of-Savior-Addon-Manager/master/locales/locales.json' + "?" + new Date().toString())
     console.log(localesList)
@@ -18,16 +18,15 @@ const state = {
 }
 
 const mutations = {
-    async getLocales(state,{translater,locales}){
+    async initLocales(state,{translater,locales}){
         state.locales = locales
         translater.setLocales(state.locales)
     }
 }
 
 const actions = {
-    async getLocales({commit},translater){
-        console.log('call actions')
-        commit('getLocales',{translater:translater,locales:await getLoacleFiles()})
+    async initLocales({commit},translater){
+        commit('initLocales',{translater:translater,locales:await fetchLoacleFiles()})
     },
 }
 

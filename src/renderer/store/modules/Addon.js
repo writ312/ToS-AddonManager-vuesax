@@ -1,8 +1,12 @@
 import semver from 'semver'
 import fs from 'fs';
-import { cpus } from 'os';
-const addonRetiriver = require('../src/addonRetiriver')
-const installer = require('../src/Installer')
+import {ipcRenderer} from 'electron'
+
+const updateSettingFile = function(){
+    console.log(state)
+    ipcRenderer.send('updateSettingFile',{setting:state.setting,list:state.addons})
+}
+
 const state = {
   addons: [],
   setting: {},
@@ -16,6 +20,14 @@ const state = {
   searchQuery:''
 }
 const mutations = {
+    initalize(state,{list,setting}){
+        console.log(list)
+        console.log(setting)
+        state.addons = list.sort((a,b)=>{
+            return (a.name.toUpperCase()<b.name.toUpperCase())?-1:(a.name.toUpperCase()>b.name.toUpperCase())?1:0
+        })
+        state.setting = setting
+    },
     setAddonList(state,addons){
         state.addons = addons.sort((a,b)=>{
             return (a.name.toUpperCase()<b.name.toUpperCase())?-1:(a.name.toUpperCase()>b.name.toUpperCase())?1:0
@@ -86,6 +98,13 @@ const mutations = {
             let nameB = b[type].toUpperCase()
             return (isAsc?-1:1)*((nameA<nameB)?-1:(nameA>nameB)?1:0)
        })
+    },
+    updateAddonStatus(state,{addon,newAddon}){
+        if (!newAddon)
+            addon.isDownloading = false
+        else
+            addon = newAddon
+        updateSettingFile()
     }
 }
 
@@ -99,9 +118,6 @@ const actions = {
         if(state.setting.treeOfSaviorDirectory){
             addonRetiriver.installDependencies(state.setting.treeOfSaviorDirectory)
         }
-    },
-    setTranslatePlugin({state}){
-        translate.setLang(state.setting.selectLanguage||'en')
     },
     checkRestoreAddonList({dispatch,state,commit}){
         // const fs = require('fs')
@@ -137,36 +153,49 @@ const actions = {
     testToast({dispatch}){
         // dispatch('@@toast/ADD_TOAST_MESSAGE', {text:'foo', type: 'success', dismissAfter: 10000})
     },
+    async installer({dispatch,state,commit},{type,addon}){
+        let res = ipcRenderer.sendSync('installer',{type:type,addon:addon})
+        res.toast.forEach(toast=>{
+            dispatch('@@toast/ADD_TOAST_MESSAGE', toast)
+        })
+        commit('updatAddonStatus',{addon:addon,newAddon:res.addon})
+    },
     async install({dispatch,state,commit},{addon}){
-        commit('downloading',{addon:addon})
-        commit('install',{addon:addon,newAddon:await installer.install(addon,state.setting.treeOfSaviorDirectory,toast=>{dispatch('@@toast/ADD_TOAST_MESSAGE', toast)})})
+        let res = ipcRenderer.sendSync('installer',{type:'install',addon:addon})
+        res.toast.forEach(toast=>{
+            dispatch('@@toast/ADD_TOAST_MESSAGE', toast)
+        })
+        commit('updatAddonStatus',{addon:addon,newAddon:res.addon})
     },
     async update({dispatch,state,commit},{addon}){
-        commit('downloading',{addon:addon})
-        commit('update',{addon:addon,newAddon:await installer.update(addon,state.setting.treeOfSaviorDirectory,toast=>{dispatch('@@toast/ADD_TOAST_MESSAGE', toast)})})
+        let res = ipcRenderer.sendSync('installer',{type:'install',addon:addon})
+        res.toast.forEach(toast=>{
+            dispatch('@@toast/ADD_TOAST_MESSAGE', toast)
+        })
+        commit('updatAddonStatus',{addon:addon,newAddon:res.addon})
     },
     async uninstall({dispatch,state,commit},{addon}){
-        commit('downloading',{addon:addon})
-        commit('uninstall',{addon:addon,newAddon:await installer.uninstall(addon,state.setting.treeOfSaviorDirectory,toast=>{dispatch('@@toast/ADD_TOAST_MESSAGE', toast)})})
+        let res = ipcRenderer.sendSync('installer',{type:'install',addon:addon})
+        res.toast.forEach(toast=>{
+            dispatch('@@toast/ADD_TOAST_MESSAGE', toast)
+        })
+        commit('updatAddonStatus',{addon:addon,newAddon:res.addon})
     },
     async getReadme({commit},{addon}){
         commit('setReadme',{addon:addon,readme:await addonRetiriver.getReadme(addon)})
     },
-    async installAddonFromList({state,commit},installAddonList){
-      
-    },
-    changeToSDirectory({stdispatch},{treeOfSaviorDirectory}){
+    updateTosDirectory({state,dispatch},{treeOfSaviorDirectory}){
         //tosのインストールフォルダかチェックする
         fs.stat(treeOfSaviorDirectory+"\\release\\Client_tos.exe",(error,stats)=>{
             if(error){
                 dispatch('@@toast/ADD_TOAST_MESSAGE', {text:'Could not save Tree of Savior directory: ' + error, type: 'danger', dismissAfter: 3000})
                 return 
+            }else{
+                state.treeOfSaviorDirectory = treeOfSaviorDirectory
+                updateSettingFile()
             }
         })
     },
-    saveSelectLanguage({commit},{selectLanguage}){
-        commit('saveSelectLanguage',{selectLanguage:selectLanguage})
-    }
 }
 
 const getters = {

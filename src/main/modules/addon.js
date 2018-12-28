@@ -215,14 +215,3 @@ async function installDependencies() {
         });
     })
 }
-
-async function reqInstaller(type,addon){
-    let treeOfSaviorDirectory = setting.treeOfSaviorDirectory
-    if(!treeOfSaviorDirectory) return {toast:[{type:'error',text:'Not Found TreeOfSavior Directroy'}]}
-    if(type === 'install' || type === 'update'){
-        return await installer.install(addon,treeOfSaviorDirectory)
-    }else if(type === 'uninstall'){
-        return await installer.uninstall(addon,treeOfSaviorDirectory)
-    }
-    installDependencies()
-}
