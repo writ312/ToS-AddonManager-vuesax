@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from 'electron'
-
+import { app, BrowserWindow, ipcMain } from 'electron'
+import ADDON from './modules/addon'
 // import store from '../renderer/store'
 
 /**
@@ -65,3 +65,41 @@ app.on('ready', () => {
   if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
 })
  */
+const addon = new ADDON()
+addon.init()
+
+ipcMain.on('initalize', (event,arg) => {
+  const loop = function(){
+    if(addon.isloading?true:false){
+      return
+    }
+    event.sender.send('initalize', {
+      list : addon.list,
+      setting : addon.setting
+    });
+    clearInterval(timer)
+  }
+  let timer = setInterval(loop,500)
+})
+
+ipcMain.on('reinitalize', (event) => {
+  addon.init()
+  const loop = function(){
+    if(addon.isloading?true:false){
+      return
+    }
+    event.sender.send('reinitalize', {
+      list : addon.list,
+      setting : addon.setting
+    });
+    clearInterval(timer)
+  }
+  let timer = setInterval(loop,500)
+})
+ipcMain.on('installer', (event, {type,addon}) => {
+  event.returnValue = addon.reqInstaller(type,addon)
+})
+
+ipcMain.on('updateSettingFile',(event,{setting,list})=>{
+  addon.writeSettingFile(setting,list)
+})
