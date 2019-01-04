@@ -99,15 +99,15 @@ export default {
     },
     install(){
         // this.addon.isDownloading = true
-        this.$store.dispatch('install',{addon:this.addon})
+        this.$store.dispatch('installer',{type:'install',addon:this.addon})
     },
     uninstall(){
       this.addon.isDownloading = true
-      this.$store.dispatch('uninstall',{addon:this.addon})
+      this.$store.dispatch('installer',{type:'uninstall',addon:this.addon})
     },
     update(){
       this.addon.isDownloading = true
-      this.$store.dispatch('update',{addon:this.addon})
+      this.$store.dispatch('installer',{type:'update',addon:this.addon})
       
     },
     openDetail(){

@@ -1,14 +1,12 @@
 <template>
   <div id="app">
     <side-bar></side-bar>
-    <!-- <landing-page></landing-page> -->
     <addon-view></addon-view>
     <toast position="ne"></toast>
   </div>
 </template>
 
 <script>
-  // import LandingPage from '@/components/LandingPage'
   import SideBar from '@/components/SideBar'
   import AddonView from '@/components/AddonView'
   import { Toast } from 'vuex-toast'
@@ -16,7 +14,6 @@
   export default {
       name: 'tos-addonmanager',
       components: {
-        // LandingPage,
         SideBar,
         AddonView,
         Toast
@@ -31,16 +28,6 @@
             })
           })
         this.$store.dispatch('initLocales',this.$translate)
-        // (function isLoading(){
-        //   if(addon.isLoading)
-        //     setTimeout(isLoading,100);
-        //   else{
-        //     this.$store.commit('initalize',{
-        //       list : addon.list,
-        //       setting : addon.setting
-        //     })
-        //   }
-        // }());
       }
     }
 </script>

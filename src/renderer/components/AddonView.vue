@@ -3,7 +3,7 @@
     <!-- <div id="container" v-show="getTreeOfSaviorDirectory?true:false"> -->
     
 <vs-row>
-  <vs-col v-for="(addon,index) in filteredAddons"  :key="addon.author+'-'+addon.file" vs-type="flex" vs-justify="center" vs-align="flex-start" vs-w="4">
+  <vs-col v-for="(addon,index) in getFilterdAddonList"  :key="addon.author+'-'+addon.file" vs-type="flex" vs-justify="center" vs-align="flex-start" vs-w="4">
         <addon-card :addon="addon" :index="index" @set='openReadme'></addon-card>
   </vs-col>
 </vs-row>
@@ -23,7 +23,7 @@
 import AddonCard from '@/components/AddonView/AddonCard'
 // import SettingModal from './Addon/Setting'
 // import ReadmeModal from './Addon/Readme'
-// import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
   export default {
     name: 'addon-view',
     data(){
@@ -58,7 +58,7 @@ import AddonCard from '@/components/AddonView/AddonCard'
         // return this.$store.getters('getTreeOfSaviorDirectory')
         
       // }
-      // ...mapGetters(['getTreeOfSaviorDirectory'])
+      ...mapGetters(['getTreeOfSaviorDirectory','getFilterdAddonList'])
     },
     methods: {
       open () {

@@ -13,8 +13,7 @@ async function fetchLoacleFiles(){
 }
 
 const state = {
-  locales: {},
-  selectLanguage : 'en'
+  locales: {}
 }
 
 const mutations = {

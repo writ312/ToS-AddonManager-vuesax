@@ -19,10 +19,10 @@
   },
   "build": {
     "productName": "tos-addonmanager",
-    "appId": "com.example.yourapp",
     "directories": {
       "output": "build"
     },
+    "appId": "com.example.tos-addonmanager",
     "files": [
       "dist/electron/**/*"
     ],
@@ -45,6 +45,7 @@
       "icon": "build/icons/icon.icns"
     },
     "win": {
+      "nsisWeb" : "https://github.com/writ312/ToS-AddonManager-vuesax/releases/latest",
       "icon": "build/icons/icon.ico"
     },
     "linux": {

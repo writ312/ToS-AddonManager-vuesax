@@ -9,6 +9,15 @@
         
     </div>
     <vs-divider position="left" >
+        Install Directory
+    </vs-divider>
+    <vs-sidebar-item >
+        <p>{{getTreeOfSaviorDirectory || "None "}}</p>
+    </vs-sidebar-item>
+    <vs-sidebar-item>
+        <vs-button type="border" @click="openDialog">Browes</vs-button>
+    </vs-sidebar-item>    
+    <vs-divider position="left" >
         Language
     </vs-divider>
     <vs-sidebar-item >
@@ -71,7 +80,7 @@
         <vs-radio v-model="order" vs-value="desc">Desc</vs-radio>
     </vs-sidebar-item> -->
     
-    <vs-divider position="left" >
+    <!-- <vs-divider position="left" >
         Other
     </vs-divider>
         
@@ -89,7 +98,7 @@
     </vs-sidebar-item>
       <vs-sidebar-item>
         <vs-button >Install Addons by List</vs-button>
-    </vs-sidebar-item>  
+    </vs-sidebar-item>   -->
 
     <div class="footer-sidebar" slot="footer">
         <!-- <vs-button icon="notifications" color="primary" type="border"></vs-button>
@@ -103,7 +112,10 @@
 </template>
 
 <script>
-// import { mapGetters, mapActions } from 'Vuex'
+import { mapGetters, mapActions } from 'Vuex'
+import { PerformanceObserver } from 'perf_hooks';
+import {remote} from 'electron'
+import fs from  "fs"
 export default {
   data:()=>({
     version:'3.2',
@@ -117,10 +129,10 @@ export default {
     },
     orderOption:'Name-Asc',
     orderOptionList:[
-        {text:'Name-Asc',value:'name-'},
-        {text:'Name-Desc',value:'name'},
-        {text:'Author-Asc',value:'author-'},
-        {text:'Author-Desc',value:'author'},
+        {text:'Name-Asc',value:'name'},
+        {text:'Name-Desc',value:'name-'},
+        {text:'Author-Asc',value:'author'},
+        {text:'Author-Desc',value:'author-'},
     ]
 
   }),
@@ -129,13 +141,13 @@ export default {
         this.selectLanguage = this.$store.state.Addon.setting.selectLanguage || 'en'
         return Object.keys(this.$store.state.Locales.locales)
     },
-    // ...mapGetters(['getUpdatableAddonList','getUpdatableAddonListLength','getFilterdAddonList'])
+    ...mapGetters(['getTreeOfSaviorDirectory','getUpdatableAddonList','getUpdatableAddonListLength','getFilterdAddonList'])
   },
   methods:{
     changeLanguage(lang){
         this.selectLanguage = lang
         this.$translate.setLang(this.selectLanguage)
-        this.$store.dispatch('saveSelectLanguage',{selectLanguage:this.selectLanguage})
+        this.$store.commit('updateSelectLanguage',{selectLanguage:this.selectLanguage})
     },
     changeSortType(item){
         this.orderOption = item.text
@@ -143,20 +155,40 @@ export default {
     },
     updateInstalledAddons(){
         console.log(this.$store.getters.getFilterdAddonList)
-    }
     },
-    watch:{
-        filters:{
-            handler:function(val){
-                console.log(val)
-                this.$store.commit('updateFilters',val)
-            },
-            deep:true
-        },
-        searchQuery:function(word){
-            this.$store.commit('updateSearchQuery',word)
-        }
+    openDialog(){
+        let self = this
+        let dialog = remote.dialog;
+        let directories = dialog.showOpenDialog({ properties: ['openDirectory']});
+        if(directories && directories.length > 0) {
+            let treeOfSaviorDirectory = directories[0];
+			let exe = treeOfSaviorDirectory + "/release/Client_tos.exe";
+			fs.stat(exe, function(error, stat) {
+				if(error) {
+                    // トーストを出して、もう一度
+                    self.$store.dispatch('@@toast/ADD_TOAST_MESSAGE', {text:'Could not save Tree of Savior directory.Please Select TreeOfSavior intalled directroy. \nToS Installed Directroy is parent directroy of data・release・patch', type: 'danger', dismissAfter: 10000})
+                    } else {
+                    // 設定を保存
+                    self.$store.dispatch('@@toast/ADD_TOAST_MESSAGE', {text:'Update ToS Installed Directory to : ' + treeOfSaviorDirectory , type: 'success', dismissAfter: 3000})
+                    self.$store.commit('updateToSDirectroy',treeOfSaviorDirectory)
+                }
+            });
+        }        
     }
+},
+
+watch:{
+    filters:{
+        handler:function(val){
+            console.log(val)
+            this.$store.commit('updateFilters',val)
+        },
+        deep:true
+    },
+    searchQuery:function(word){
+        this.$store.commit('updateSearchQuery',word)
+    }
+},
 }
 </script>
 

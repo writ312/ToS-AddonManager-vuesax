@@ -1,6 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import ADDON from './modules/addon'
+import installer from '/modules/installer'
 // import store from '../renderer/store'
+const addonManager = new ADDON()
+addonManager.init()
 
 /**
  * Set `__static` path to static files in production
@@ -42,7 +45,14 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    createWindow()
+    const loop = function(){
+      if(addonManager.isLoading?true:false){
+        return
+      }
+      createWindow()
+      clearInterval(timer)
+    }
+    let timer = setInterval(loop,500)
   }
 })
 
@@ -65,17 +75,15 @@ app.on('ready', () => {
   if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
 })
  */
-const addon = new ADDON()
-addon.init()
 
 ipcMain.on('initalize', (event,arg) => {
   const loop = function(){
-    if(addon.isloading?true:false){
+    if(addonManager.isLoading?true:false){
       return
     }
     event.sender.send('initalize', {
-      list : addon.list,
-      setting : addon.setting
+      list : addonManager.list,
+      setting : addonManager.setting
     });
     clearInterval(timer)
   }
@@ -83,23 +91,49 @@ ipcMain.on('initalize', (event,arg) => {
 })
 
 ipcMain.on('reinitalize', (event) => {
-  addon.init()
+  addonManager.init()
   const loop = function(){
-    if(addon.isloading?true:false){
+    if(addonManager.isLoading?true:false){
       return
     }
+    if(addonManager.treeOfSaviorDirectory){
+      installer.installDependencies(addonManager.treeOfSaviorDirectory)
+    }
     event.sender.send('reinitalize', {
-      list : addon.list,
-      setting : addon.setting
+      list : addonManager.list,
+      setting : addonManager.setting
     });
     clearInterval(timer)
   }
   let timer = setInterval(loop,500)
 })
-ipcMain.on('installer', (event, {type,addon}) => {
-  event.returnValue = addon.reqInstaller(type,addon)
+ipcMain.on('installer', async (event, {type,addon}) =>  {
+  let treeOfSaviorDirectory = addonManager.treeOfSaviorDirectory
+  
+  switch(type){
+    case 'install' :
+    case 'update' :
+      event.sender.send('installer',await installer.install(addon,treeOfSaviorDirectory)) 
+      break;
+    
+    case 'uninstall' :
+      event.sender.send('installer',await installer.uninstall(addon,treeOfSaviorDirectory))
+        break    
+  } 
+
+})
+
+ipcMain.on('updateToSDirectroy',(event,path)=>{
+  console.log(path)
+  addonManager.treeOfSaviorDirectory = path
+  if(path){
+    installer.installDependencies(path)
+  }
+  addonManager.writeSettingFile
 })
 
 ipcMain.on('updateSettingFile',(event,{setting,list})=>{
-  addon.writeSettingFile(setting,list)
+  addonManager.list = list
+  addonManager.setting = setting
+  addonManager.writeSettingFile()
 })

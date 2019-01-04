@@ -2,9 +2,6 @@ import axios from 'axios'
 import semver from 'semver'
 import storage from 'electron-json-storage'
 import path from 'path'
-import fs from 'fs'
-import request from 'request'
-import installer from '../modules/installer'
 
 storage.setDataPath(path.join(process.env.APPDATA ,'/tree-of-savior-addon-manager'))
 
@@ -20,7 +17,7 @@ export default class {
         this.loading = true
     }
     async init(){
-        this.loading = false
+        this.loading = true
         console.log('initalize')
         let data = await readSettingFile()
         // console.log(data)
@@ -29,10 +26,7 @@ export default class {
         this.list = await fetchAddonList(this.setting.installedAddons || this.setting.addons || {})
         this.loading = false
     }
-    get isloading(){
-        return this.loading
-    }
-    writeSettingFile() {
+    writeSettingFile(){
         let settingFile = {}
         settingFile.setting = this.setting
         settingFile.setting.saveDataType = 'vue'
@@ -43,33 +37,30 @@ export default class {
             if(error) throw error
         })
     }
-    
-    async  fetchReadme(addon){
-        let urls = [`https://raw.githubusercontent.com/${addon.author}/${addon.repo}/master/${addon.file}/README.md`,
-                    `https://raw.githubusercontent.com/${addon.author}/${addon.repo}/master/${addon.name.replace(' ','')}/README.md`,
-                    `https://raw.githubusercontent.com/${addon.author}/${addon.repo}/master/README.md`
-        ]
-        for(let url of urls){
-            try{ 
-                let res = await axios.get(url)
-                return res.data
-            }catch(e){
-                continue
-            }
-        }
-        return '# Readme Not Found'
-    }
-
-    async reqInstaller(type,addon){
-        let treeOfSaviorDirectory = setting.treeOfSaviorDirectory
-        if(!treeOfSaviorDirectory) return {toast:[{type:'error',text:'Not Found TreeOfSavior Directroy'}]}
-        if(type === 'install' || type === 'update'){
-            return await installer.install(addon,treeOfSaviorDirectory)
-        }else if(type === 'uninstall'){
-            return await installer.uninstall(addon,treeOfSaviorDirectory)
-        }
-        installDependencies()
-    }
+    // set isLoading(status){
+    //     this.isLoading = status
+    // }
+    // get isLoading(){
+    //     return this.loading
+    // }
+    // set treeOfSaviorDirectory(path){
+    //     this.setting.treeOfSaviorDirectory = path
+    // }
+    // get treeOfSaviorDirectory(){
+    //     return this.setting.treeOfSaviorDirectory
+    // }
+    // set list(list){
+    //     this.list = list
+    // }
+    // get list(){
+    //     return list
+    // }
+    // set setting(setting){
+    //     this.setting = setting
+    // }
+    // get setting(){
+    //     return setting
+    // }
 }
 
 async function fetchAddonList(installedAddons){
@@ -179,39 +170,3 @@ function readOldSettingFile() {
     })
 }
 
-async function installDependencies() {
-    let treeOfSaviorDirectory = setting.treeOfSaviorDirectory
-    let res = await axios.get(urls['jtos'] || urls['test'])
-    let data = res.data
-    data.dependencies.forEach(dependency=>{
-        console.log(`Downloading dependency at ${dependency.url}.`);
-        let fileRequest = request.get(dependency.url);
-        let filename = dependency.url.match(/.*\/(.*)$/)[1];
-        let destinationFile = `${treeOfSaviorDirectory}/release/lua/${filename}`;
-
-        fileRequest.on('response', function(response) {
-            if(response.statusCode !== 200) {
-                return;
-            } else {
-                let file = fs.createWriteStream(destinationFile);
-
-                fileRequest.on('error', function(error) {
-                    console.error(`fileRequest: Could not install dependency from ${dependency.url}: ${error}`);
-                    return;
-                });
-
-                fileRequest.pipe(file);
-
-                file.on('finish', function() {
-                    file.close();
-                });
-
-                file.on('error', function(error) {
-                    console.error(`file: Could not install dependency from ${dependency.url}: ${error}`);
-                    fs.unlink(destinationFile);
-                    return;
-                });
-            }
-        });
-    })
-}
