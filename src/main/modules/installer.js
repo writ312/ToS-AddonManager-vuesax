@@ -3,11 +3,11 @@ const mkdir = require('mkdirp')
 const request = require('request')
 
 async function install(addon,treeOfSaviorDirectory){
-    let toasts = []
+    var toasts = []
     let settingDir = `${treeOfSaviorDirectory}\\addons\\${addon.file}`
     if(!isExistDirectory(settingDir)){
         let isSuccess = createSettingsDirectory(settingDir)
-        toasts.insert({
+        toasts.push({
             type:isSuccess?"success":"danger",
             text:isSuccess?`Create ${addon.file} setting directory`:"Creating  ${addon.file} setting directory Faild!!",
         })
@@ -16,7 +16,7 @@ async function install(addon,treeOfSaviorDirectory){
         if(addon.isUpdateAvailable){
             return await update(addon,treeOfSaviorDirectory,toasts)
         }else{
-            toasts.insert({
+            toasts.push({
                 type:"warning",
                 text:`${addon.Name} is already installed `
             })
@@ -43,7 +43,7 @@ function deleteAddon(addon,treeOfSaviorDirectory,toasts){
         fs.unlink(fileName,error=>{
             if(error){
                 if(error.message.includes('locked')){
-                    toasts.insert({
+                    toasts.push({
                         type:'danger',
                         text:`The specified file is currently open.\nClose the file and try again.`,
                     })
@@ -51,7 +51,7 @@ function deleteAddon(addon,treeOfSaviorDirectory,toasts){
                 }else{
                     addon.isDownloading = false
                     addon.isInstalled = false
-                    toasts.insert({
+                    toasts.push({
                         type:'warning',
                         text:`Older version of ${addon.file} not found`,
                     })
@@ -60,7 +60,7 @@ function deleteAddon(addon,treeOfSaviorDirectory,toasts){
             }else{
                 addon.isDownloading = false
                 addon.isInstalled = false
-                toasts.insert({
+                toasts.push({
                     type:'success',
                     text:`Uninstalled  ${addon.file}-${addon.fileVersion}`,
                 })
@@ -75,29 +75,16 @@ function downlaodAddon(addon,treeOfSaviorDirectory,toasts){
         let fileName = `${treeOfSaviorDirectory}\\data\\_${addon.file}-${addon.unicode}-${addon.fileVersion}.${addon.extension}`
         let fileRequest = request.get(addon.downloadUrl)
         fileRequest.on('response', function(response) {
-            console.log(`status code: ${response.statusCode}`)
             if(response.statusCode !== 200) {
                 addon.isDownloading = false
-                addon.isInstalled = falseW
-                toasts.insert({
+                addon.isInstalled = false
+                toasts.push({
                     type:'danger',
                     text:` Download failed.status code: ${response.statusCode}`,
                 })
                 resolve({toasts:toasts,newAddon:addon})
             } else {
                 var file = fs.createWriteStream(fileName)
-
-                fileRequest.on('error', function(error) {
-                    addon.isDownloading = false
-                    addon.isInstalled = false
-                    addon.failedInstall = true
-                    toasts.insert({
-                        type:'danger',
-                        text:`Writing file error.${error}`,
-                    })
-                    fs.unlink(fileName)
-                    resolve({toasts:toasts,newAddon:addon})
-                })
 
                 fileRequest.pipe(file)
 
@@ -107,7 +94,7 @@ function downlaodAddon(addon,treeOfSaviorDirectory,toasts){
                     addon.failedInstall = false
                     addon.isUpdateAvailable = false
                     addon.installedFileVersion = addon.fileVersion
-                     toasts.insert({
+                     toasts.push({
                         type:'info',
                         text:`Installed ${addon.file}-${addon.fileVersion}`,
                     })
@@ -119,7 +106,7 @@ function downlaodAddon(addon,treeOfSaviorDirectory,toasts){
                     addon.isDownloading = false
                     addon.isInstalled = false
                     addon.failedInstall = true
-                     toasts.insert({
+                    toasts.push({
                         type:'danger',
                         text:`Writing file error.${error}`,
                     })

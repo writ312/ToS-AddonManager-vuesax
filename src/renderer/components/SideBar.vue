@@ -42,11 +42,11 @@
         <vs-input icon="search" placeholder="Search" v-model="searchQuery"/>
     </vs-sidebar-item>
     <ul  class="leftx">
+        <li>    
+            <vs-checkbox  color="primary" v-model="filters.updatable">Updatable<div class="badge" v-show="$store.getters.getUpdatableAddonListLength>0"><span class='badgeNumber'>{{$store.getters.getUpdatableAddonListLength}}</span></div></vs-checkbox>
+        </li>    
         <li>
             <vs-checkbox  color="success" v-model="filters.installed">Installed</vs-checkbox>   
-        </li>    
-        <li>    
-            <vs-checkbox  color="primary" v-model="filters.updatable">Updatable<div class="badge"><span class='badgeNumber'>{{$store.getters.getUpdatableAddonListLength}}</span></div></vs-checkbox>
         </li>    
         <li>
             <vs-checkbox color="dark" v-model="filters.notinstalled">Not Installed</vs-checkbox>
@@ -116,6 +116,7 @@ import { mapGetters, mapActions } from 'Vuex'
 import { PerformanceObserver } from 'perf_hooks';
 import {remote} from 'electron'
 import fs from  "fs"
+import _ from 'lodash'
 export default {
   data:()=>({
     version:'3.2',
@@ -174,9 +175,14 @@ export default {
                 }
             });
         }        
+    },
+    updateSearchQuery(){
+        this.$store.commit('updateSearchQuery',this.searchQuery)
     }
 },
-
+created: function () {
+    this.debouncedSearchQuery = _.debounce(this.updateSearchQuery,500)
+},
 watch:{
     filters:{
         handler:function(val){
@@ -186,7 +192,7 @@ watch:{
         deep:true
     },
     searchQuery:function(word){
-        this.$store.commit('updateSearchQuery',word)
+        this.debouncedSearchQuery()
     }
 },
 }

@@ -1,9 +1,7 @@
-import semver from 'semver'
-import fs from 'fs';
 import {ipcRenderer} from 'electron'
 import axios from 'axios'
-
-const updateSettingFile = function(){
+import _ from 'lodash'
+const updateSettingFile = function(state){
     ipcRenderer.send('updateSettingFile',{setting:state.setting,list:state.addons})
 }
 
@@ -17,7 +15,10 @@ const state = {
     updatable:true,
     notinstalled:true
   },
-  searchQuery:''
+  searchQuery:'',
+  installedAddons : [],
+  updatableAddons : [],
+  notinstalledAddons : []
 }
 const mutations = {
     initalize(state,{list,setting}){
@@ -25,12 +26,6 @@ const mutations = {
             return (a.name.toUpperCase()<b.name.toUpperCase())?-1:(a.name.toUpperCase()>b.name.toUpperCase())?1:0
         })
         state.setting = setting
-        updateSettingFile()
-    },
-    setAddonList(state,addons){
-        state.addons = addons.sort((a,b)=>{
-            return (a.name.toUpperCase()<b.name.toUpperCase())?-1:(a.name.toUpperCase()>b.name.toUpperCase())?1:0
-        })
     },
     setReadme(state,{addon,readme}){
         addon.readme = readme
@@ -39,18 +34,20 @@ const mutations = {
     updateToSDirectroy(state,treeOfSaviorDirectory){
         state.setting.treeOfSaviorDirectory = treeOfSaviorDirectory
         ipcRenderer.send('updateToSDirectroy',treeOfSaviorDirectory)
-        updateSettingFile()
+        updateSettingFile(state)
     },
     updateSelectLanguage(state,{selectLanguage}){
         state.setting.selectLanguage = selectLanguage
-        updateSettingFile()
+        updateSettingFile(state)
     },
-    updateAddonStatus(state,{addon,newAddon}){
-        if (!newAddon)
-            addon.isDownloading = false
-        else
-            addon = newAddon
-        updateSettingFile()
+    updateAddonStatus(state,{addon,newAddon,index}){
+        let key =   state.addons.findIndex(o=>o.name === addon.name)
+        if(key !== -1){
+            state.addons[key].isInstalled = newAddon.isInstalled
+            state.addons[key].isUpdateAvailable = newAddon.isUpdateAvailable
+            state.addons[key].installedFileVersion = newAddon.installedFileVersion
+        }
+        updateSettingFile(state)
     },
     updateSearchQuery(state,word){
         state.searchQuery = word.toUpperCase()
@@ -74,15 +71,18 @@ const mutations = {
 }
 
 const actions = {
-    async installer({dispatch,state,commit},{type,addon}){
-        console.log(type)
-        console.log(addon)
+    updateSettingFile({state}){
+        ipcRenderer.send('updateSettingFile',{setting:state.setting,list:state.addons})
+    },
+
+    async installer({dispatch,commit},{type,addon,index}){
+        console.log('request installer')
         ipcRenderer.send('installer', {type:type,addon:addon})
-        ipcRenderer.on('installer', (event, {toasts,newAddon}) => {
+        ipcRenderer.once('installer', (event, {toasts,newAddon}) => {
             toasts.forEach(toast=>{
                 dispatch('@@toast/ADD_TOAST_MESSAGE', toast)
             })
-            commit('updatAddonStatus',{addon:addon,newAddon:newAddon})
+            commit('updateAddonStatus',{addon:addon,newAddon:newAddon,index:index})
         })
     },
     async getReadme({commit},{addon}){
@@ -105,28 +105,40 @@ const actions = {
 
 const getters = {
     getTreeOfSaviorDirectory : state=>state.setting.treeOfSaviorDirectory,
-    getUpdatableAddonList : (state)=>{
-        return state.addons.filter(addon=>addon.isUpdateAvailable)
+    getInstalledAddons : (state)=>{
+        return _.filter(state.addons, addon => addon.isInstalled && !addon.isUpdateAvailable  );
     },    
-    getUpdatableAddonListLength:(state,getters)=>{
-        return getters.getUpdatableAddonList.length
+    getUpdatableAddons : (state)=>{
+        return _.filter(state.addons, addon => addon.isUpdateAvailable );
     },
-    getFilterdAddonList:state=>{
-        let filters = state.filters,
-            isInstalled = filters.installed,
-            isUpdatable = filters.updatable,
-            isNotInstalled = filters.notinstalled,
-            searchQuery = state.searchQuery
-            console.log(isInstalled,isUpdatable,isNotInstalled)
-            return state.addons.filter(addon=>{
-                console.log(addon.name,addon.isInstalled,addon.isUpdateAvailable,isInstalled)
-            if(addon.isInstalled === isInstalled || addon.isUpdateAvailable === isUpdatable || !addon.isInstalled === isNotInstalled){
-                return searchQuery === '' || addon.name.toUpperCase().includes(searchQuery) || addon.author.toUpperCase().includes(searchQuery) || addon.tags.find(tag=>{tag.toUpperCase().includes(searchQuery)})
-            }else{
-                return false
-            }
+    getNotinstalledAddons : (state)=>{
+        return _.filter(state.addons, addon => !addon.isInstalled );
+    },    
+    getUpdatableAddonsLength:(state,getters)=>{
+        return getters.getUpdatableAddons.length
+    },
+    getFilterdAddonList:(state,getters)=>{
+        let filters = state.filters
+        let searchQuery = state.searchQuery
+        let list = _.compact(_.concat(filters.updatable?getters.getUpdatableAddons:[],
+            filters.installed?getters.getInstalledAddons:[],
+            filters.notinstalled?getters.getNotinstalledAddons:[]
+        ))
+        return _.filter(list,addon=>{
+            return searchQuery === '' || addon.name.toUpperCase().includes(searchQuery) || addon.author.toUpperCase().includes(searchQuery)
         })
-    }
+        // let filters = state.filters,
+        //     isInstalled = filters.installed,
+        //     isUpdatable = filters.updatable,
+        //     isNotInstalled = filters.notinstalled,
+        //     searchQuery = state.searchQuery
+        //     return state.addons.filter(addon=>{
+        //     if(addon.isInstalled === isInstalled || addon.isUpdateAvailable === isUpdatable || !addon.isInstalled === isNotInstalled){
+        //         return searchQuery === '' || addon.name.toUpperCase().includes(searchQuery) || addon.author.toUpperCase().includes(searchQuery)            }else{
+        //         return false
+        //     }
+        // })
+    },
 }
 
 export default {

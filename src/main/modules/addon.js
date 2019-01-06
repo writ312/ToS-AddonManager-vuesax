@@ -6,15 +6,17 @@ import path from 'path'
 storage.setDataPath(path.join(process.env.APPDATA ,'/tree-of-savior-addon-manager'))
 
 let urls ={
-    'jtos':"https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json",
-    'itos': "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json",
-    // 'test':'https://raw.githubusercontent.com/writ312/Addons/master/addons.json'
+    // 'jtos':"https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json",
+    // 'itos': "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json",
+    'test':'https://raw.githubusercontent.com/writ312/Addons/master/addons.json'
 
 }
 
 export default class {
     constructor(){
-        this.loading = true
+        this.loading = true,
+        this.setting = [],
+        this.list = []
     }
     async init(){
         this.loading = true
@@ -30,9 +32,15 @@ export default class {
         let settingFile = {}
         settingFile.setting = this.setting
         settingFile.setting.saveDataType = 'vue'
-        settingFile.installedAddons = this.list.filter(addon=>{return addon.isInstalled}).reduce(
-            (o,c) =>Object.assign(o,{[c.file]:{isInstalled:c.isInstalled,installedFileVersion:installedFileVersion}},{})
-        )
+        let installedList  = (this.list.filter(addon=>{
+            return addon.isInstalled
+        }))
+        if(installedList.length > 0)
+            settingFile.installedAddons = installedList.reduce(
+                (o,c) =>Object.assign(o,{[c.file]:{isInstalled:c.isInstalled,installedFileVersion:c.installedFileVersion}},{})
+            )
+        else
+            settingFile.installedAddons = []
         storage.set('addons',settingFile,function(error){
             if(error) throw error
         })
@@ -43,23 +51,23 @@ export default class {
     // get isLoading(){
     //     return this.loading
     // }
-    // set treeOfSaviorDirectory(path){
-    //     this.setting.treeOfSaviorDirectory = path
-    // }
-    // get treeOfSaviorDirectory(){
-    //     return this.setting.treeOfSaviorDirectory
-    // }
+    set treeOfSaviorDirectory(path){
+        this.setting.treeOfSaviorDirectory = path
+    }
+    get treeOfSaviorDirectory(){
+        return this.setting.treeOfSaviorDirectory
+    }
     // set list(list){
     //     this.list = list
     // }
     // get list(){
-    //     return list
+    //     return this.list
     // }
     // set setting(setting){
     //     this.setting = setting
     // }
     // get setting(){
-    //     return setting
+    //     return this.setting
     // }
 }
 
@@ -139,8 +147,8 @@ function parseAddonData(source,addon,installedAddons){
             // console.log("semver version error");
             addon.isUpdateAvailable = false;
         }
-    } else {
-        addon.isInstalled = false;
+        } else {
+            addon.isInstalled = false;
         addon.isUpdateAvailable = false;
     }
     // console.log(addon)
