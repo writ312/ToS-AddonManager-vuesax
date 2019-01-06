@@ -1,6 +1,6 @@
 {
   "name": "tos-addonmanager",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "writ312 <writ0312@gmail.com>",
   "description": "An electron-vue project",
   "license": "MIT",
