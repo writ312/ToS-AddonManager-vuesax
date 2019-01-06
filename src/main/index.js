@@ -47,7 +47,7 @@ const winURL = process.env.NODE_ENV === 'development'
   })
   mainWindow.once('ready-to-show', () => {
       const loop = function(){
-        if(addonManager.isLoading?true:false){
+        if(addonManager.isLoading?true:false || addonManager.list.length == 0){
           return
         }
         mainWindow.show()
@@ -72,16 +72,6 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    const loop = function(){
-      if(addonManager.isLoading?true:false){
-        return
-      }
-      createWindow()
-      clearInterval(timer)
-    }
-    let timer = setInterval(loop,500)
-  }
 })
 
 /**
@@ -103,10 +93,17 @@ app.on('ready', () => {
 })
 
 ipcMain.on('initalize', (event,arg) => {
+  const loop = function(){
+    if(addonManager.isLoading?true:false || addonManager.list.length == 0){
+      return
+    }
     event.sender.send('initalize', {
       list : addonManager.list,
       setting : addonManager.setting
     });
+    clearInterval(timer)
+  }
+  let timer = setInterval(loop,500)
 })
 
 ipcMain.on('reinitalize', (event) => {

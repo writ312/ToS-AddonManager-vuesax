@@ -6,9 +6,9 @@ import path from 'path'
 storage.setDataPath(path.join(process.env.APPDATA ,'/tree-of-savior-addon-manager'))
 
 let urls ={
-    // 'jtos':"https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json",
-    // 'itos': "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json",
-    'test':'https://raw.githubusercontent.com/writ312/Addons/master/addons.json'
+    'jtos':"https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json",
+    'itos': "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json",
+    // 'test':'https://raw.githubusercontent.com/writ312/Addons/master/addons.json'
 
 }
 
@@ -22,7 +22,7 @@ export default class {
         this.loading = true
         console.log('initalize')
         let data = await readSettingFile()
-        // console.log(data)
+        console.log(data)
         this.setting = (data.setting && data.setting.saveDataType === 'vue') ? data.setting : await readOldSettingFile()
         console.log('load setting files')
         this.list = await fetchAddonList(this.setting.installedAddons || this.setting.addons || {})
@@ -37,8 +37,13 @@ export default class {
         }))
         if(installedList.length > 0)
             settingFile.installedAddons = installedList.reduce(
-                (o,c) =>Object.assign(o,{[c.file]:{isInstalled:c.isInstalled,installedFileVersion:c.installedFileVersion}},{})
-            )
+                (o,c) =>{
+                    o[c.file] = {isInstalled:c.isInstalled,
+                        installedFileVersion:c.installedFileVersion}
+                    return o
+                    }
+                ,[]
+           )
         else
             settingFile.installedAddons = []
         storage.set('addons',settingFile,function(error){
@@ -87,7 +92,7 @@ async function fetchAddonList(installedAddons){
             repoList.push(source.repo)
             let res = await axios.get(`https://raw.githubusercontent.com/${source.repo}/master/addons.json`)
             if(typeof res.data === 'string'){
-                // Fuck Bom!!!
+                // Fuckin Bom!!!
                 let string = res.data
                 if (string.charCodeAt(0) === 0xFEFF) {
                     string = string.slice(1)
@@ -103,7 +108,6 @@ async function fetchAddonList(installedAddons){
             }
         }
     }
-    // console.log(addons)
     console.log('load addon list')
     // isLoading = false
     return addons
@@ -147,7 +151,7 @@ function parseAddonData(source,addon,installedAddons){
             // console.log("semver version error");
             addon.isUpdateAvailable = false;
         }
-        } else {
+    } else {
             addon.isInstalled = false;
         addon.isUpdateAvailable = false;
     }
