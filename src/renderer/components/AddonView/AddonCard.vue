@@ -1,36 +1,40 @@
 <template>
     <vs-card class="cardx">
     <div slot="header">
-      <span class="title" >{{addon.name}}
+      <span class="title" > {{addon.name}}
         <span style="padding-top:8px;font-size:15px"> by {{addon.author}}</span>
-      <vs-chip class="versionTag" :color="status">
+
+      <vs-chip class="vs-card--header-tag" :color="status">
           <vs-avatar :v-if="addon.isInstalled" :color="status" :icon="statusIcon"/>
           {{addon.fileVersion}}
           </vs-chip>
       </span>
+      <vs-chip class="vs-card--header-tag" color="primary" v-if="addon.twitterAccount" @click="openTwitter">
+        Twitter
+      </vs-chip>
+      <vs-chip class="vs-card--header-tag" color="dark" @click="openGithub">
+        Github
+      </vs-chip>
+
     </div>
     <div slot="media">
       <!-- 誰もTagとか使ってないでしょ -->
         <!-- <vs-chip v-for="tag in addon.tags" type='is-white' :key="tag">{{tag}} </vs-chip> -->
-        <vs-tabs vs-alignment="fixed" v-model="activeTab">
-        <vs-tab vs-label="Discription">
-            <span>{{addon.description.replace(/[^\.]{20}[\.．。][\]\)]*/g,"$&\n").replace(/[^\n]$/,"$&\n  ")}}</span>
+      <vs-tabs alignment="fixed" v-model="activeTab" v-on:click-tag="changeTab">
+
+        <vs-tab label="Discription">
+          <span>{{addon.description.replace(/[^\.]{20}[\.．。][\]\)]*/g,"$&\n").replace(/[^\n]$/,"$&\n  ")}}</span>
         </vs-tab>
-        <vs-tab vs-label="UpdateInfomation" :disabled="!addon.updateInfo">
-            <span v-show="addon.updateInfo" > {{addon.updateInfo}}</span>
+
+        <vs-tab label="UpdateInfomation" :disabled="!addon.updateInfo">
+          <span v-show="addon.updateInfo" > {{addon.updateInfo}}</span>
         </vs-tab>
-        <vs-tab vs-label="README">
+
+        <vs-tab label="README">
+          <span  />
         </vs-tab>
-        </vs-tabs>
-       <!-- <a class="button is-info is-small" @click="openTwitter">
-          <b-icon icon="twitter"></b-icon>
-          <span>Twitter</span>
-        </a>
-        <a class="button is-dark is-small" @click="openGithub">
-          <b-icon icon="github-circle"></b-icon>
-          <span>GitHub</span>
-        </a>
-      -->
+
+      </vs-tabs>
       <vs-row vs-justify="flex-end">
       <vs-button  size="large" type="border" v-show="!addon.isDownloading && !addon.isInstalled" color="success"  :class="{'is-loading':addon.isDownloading}" @click="install">Install</vs-button >
     
@@ -47,7 +51,6 @@ export default {
   name: 'addon-card',
   data() {
     return {
-      twitter: "./asset/twitter.png",
       activeTab:0,
       beforeActiveTab:0
     }
@@ -75,15 +78,17 @@ export default {
   },
   watch:{
     activeTab:function(val){
+      console.log(val)
+      console.log(this.addon.readme)
       if(val == 2){
         this.$store.dispatch('getReadme',{addon:this.addon})
-        this.$parent.isReadmeModalActive = true
         this.$nextTick(()=>{
+        this.$emit('set')
+          this.beforeActiveTab = this.activeTab
           this.activeTab = this.beforeActiveTab
         })
         return
       }
-      this.beforeActiveTab = this.activeTab
     }
   },
   created:function(){
@@ -91,7 +96,6 @@ export default {
   },
   methods: {
     openTwitter() {
-        console.log("https://twitter.com/" + this.addon.twitterAccount)
         require('electron').shell.openExternal("https://twitter.com/" + this.addon.twitterAccount)
     },
     openGithub(){
@@ -111,6 +115,7 @@ export default {
       this.$store.dispatch('getReadme',{addon:this.addon})
     },
     changeTab(val){
+      console.log(val)
       this.activeTab = val
     }
   }
@@ -122,8 +127,8 @@ export default {
 .cardx {
   margin: 10px
 }
-.con-vs-chip.versionTag {
-  float: right;
+.vs-card--header-tag {
+  float: right !important;
 }
 .con-slot-tabs{
   padding-top: .5rem;
@@ -161,4 +166,5 @@ i{
   width:40px;
   padding: 5px
 }
+
 </style>

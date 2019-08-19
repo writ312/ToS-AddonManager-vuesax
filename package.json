@@ -1,6 +1,6 @@
 {
   "name": "tos-addonmanager",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "writ312 <writ0312@gmail.com>",
   "description": "An electron-vue project",
   "license": "MIT",
@@ -29,13 +29,12 @@
     "win": {
       "icon": "build/icons/icon.ico"
     },
-    "nsis":{
-      "installerIcon":"build/icons/icon.ico",
-      "uninstallerIcon":"build/icons/icon.ico"
+    "nsis": {
+      "installerIcon": "build/icons/icon.ico",
+      "uninstallerIcon": "build/icons/icon.ico"
     },
     "nsisWeb": {
-      "appPackageUrl" :"https://github.com/writ312/ToS-AddonManager-vuesax/releases/latest"
-  
+      "appPackageUrl": "https://github.com/writ312/ToS-AddonManager-vuesax/releases/latest"
     }
   },
   "dependencies": {
@@ -43,13 +42,14 @@
     "electron-json-storage": "^4.1.4",
     "electron-updater": "^4.0.6",
     "lodash": "^4.17.11",
+    "marked": "^0.7.0",
     "material-icons": "^0.2.3",
     "mkdirp": "^0.5.1",
     "request": "^2.88.0",
     "semver": "^5.6.0",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
-    "vuesax": "^3.8.0",
+    "vuesax": "^3.9.0",
     "vuex": "^3.0.1",
     "vuex-electron": "^1.0.0",
     "vuex-toast": "^0.1.3"

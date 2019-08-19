@@ -12,7 +12,7 @@
         Install Directory
     </vs-divider>
     <vs-sidebar-item >
-        <p>{{getTreeOfSaviorDirectory || "None "}}</p>
+        <p class="text-tosdir">{{getTreeOfSaviorDirectory || "None "}}</p>
     </vs-sidebar-item>
     <vs-sidebar-item>
         <vs-button type="border" @click="openDialog">Browes</vs-button>
@@ -200,6 +200,10 @@ watch:{
 
 
 <style>
+.text-tosdir {
+    word-break: break-all;
+}
+
 .parentx-static {
 	overflow: hidden;
 	height: 100%;

@@ -1,6 +1,7 @@
 import {ipcRenderer} from 'electron'
 import axios from 'axios'
 import _ from 'lodash'
+import marked from 'marked'
 const updateSettingFile = function(state){
     ipcRenderer.send('updateSettingFile',{setting:state.setting,list:state.addons})
 }
@@ -9,7 +10,7 @@ const state = {
   addons: [],
   setting: {},
   isLoading:true,
-  detailAddon : {},
+  openReadmeAddon : {name : '' , readme : ''},
   filters:{
     installed:true,
     updatable:true,
@@ -28,8 +29,10 @@ const mutations = {
         state.setting = setting
     },
     setReadme(state,{addon,readme}){
-        addon.readme = readme
-        state.detailAddon = addon
+        console.log(marked(readme))
+        addon.readme = marked(readme)
+        state.openReadmeAddon = {name : addon.name , readme : addon.readme}
+        console.log(state.openReadmeAddon)
     },
     updateToSDirectroy(state,treeOfSaviorDirectory){
         state.setting.treeOfSaviorDirectory = treeOfSaviorDirectory
@@ -139,6 +142,8 @@ const getters = {
         //     }
         // })
     },
+    getReadmeTitle : state => state.openReadmeAddon.name ,
+    getReadmeText : state => state.openReadmeAddon.readme ,
 }
 
 export default {

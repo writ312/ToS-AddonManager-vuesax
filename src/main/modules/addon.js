@@ -5,7 +5,7 @@ import path from 'path'
 
 storage.setDataPath(path.join(process.env.APPDATA ,'/tree-of-savior-addon-manager'))
 
-let urls ={
+let URLS ={
     'jtos':"https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json",
     'itos': "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json",
     // 'test':'https://raw.githubusercontent.com/writ312/Addons/master/addons.json'
@@ -25,7 +25,10 @@ export default class {
         console.log(data)
         this.setting = (data.setting && data.setting.saveDataType === 'vue') ? data.setting : await readOldSettingFile()
         console.log('load setting files')
+        // const startTime = performance.now()
         this.list = await fetchAddonList(this.setting.installedAddons || this.setting.addons || {})
+        // const endTime = performance.now();
+        // console.log(endTime - startTime); 
         this.loading = false
     }
     writeSettingFile(){
@@ -81,33 +84,35 @@ async function fetchAddonList(installedAddons){
     let addons = []
     let repoList = []
     let addonList = []
-    for(let type in urls){
-        let response = await axios.get(urls[type])
-        // console.log(response.data)
-        for(let source of response.data.sources){
-            // console.log(source)
-            if(!source.repo || repoList.indexOf(source.repo) +1){
-                continue
-            }
-            repoList.push(source.repo)
-            let res = await axios.get(`https://raw.githubusercontent.com/${source.repo}/master/addons.json`)
-            if(typeof res.data === 'string'){
-                // Fuckin Bom!!!
-                let string = res.data
-                if (string.charCodeAt(0) === 0xFEFF) {
-                    string = string.slice(1)
-                }
-                res.data = JSON.parse(string)
-            }
-            for(let addon of res.data){
-                if(addonList.indexOf(source.repo+addon.file)+1){
-                    continue                        
-                }
-                addons.push(parseAddonData(source,addon,installedAddons))
-                addonList.push(source.repo+addon.file)
-            }
-        }
+    let sourceList = []
+    // URLS is 8 line
+    for(let type in URLS){
+        let response = await axios.get(URLS[type])
+        sourceList.push(...response.data.sources)
     }
+    await Promise.all(sourceList.map(async function(source){
+        if(!source.repo || repoList.indexOf(source.repo) +1){
+            return 
+        }
+        repoList.push(source.repo)
+        let res = await axios.get(`https://raw.githubusercontent.com/${source.repo}/master/addons.json`)
+        if(typeof res.data === 'string'){
+            // Fuckin Bom!!!
+            let string = res.data
+            if (string.charCodeAt(0) === 0xFEFF) {
+                string = string.slice(1)
+            }
+            res.data = JSON.parse(string)
+        }
+        for(let addon of res.data){
+            if(addonList.indexOf(source.repo+addon.file)+1){
+                return                         
+            }
+            addons.push(parseAddonData(source,addon,installedAddons))
+            addonList.push(source.repo+addon.file)
+        }
+        return 
+    }))
     console.log('load addon list')
     // isLoading = false
     return addons

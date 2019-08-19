@@ -63,15 +63,12 @@ const winURL = process.env.NODE_ENV === 'development'
   })
 }
 
-app.on('ready', createWindow)
+// app.on('ready', createWindow)
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-app.on('activate', () => {
 })
 
 /**
@@ -89,7 +86,9 @@ autoUpdater.on('update-downloaded', () => {
 })
 
 app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
+  createWindow()
+  // if (process.env.NODE_ENV === 'production') 
+    autoUpdater.checkForUpdates()
 })
 
 ipcMain.on('initalize', (event,arg) => {

@@ -1,5 +1,8 @@
 <template>
   <div class='addonView'>
+    <vs-prompt :active.sync="activeReadmePrompt" :title="readmeTitle"  @close="activeReadmePrompt = false">
+      <span class="readme" v-html="readmeText"></span>
+    </vs-prompt>
     <!-- <div id="container" v-show="getTreeOfSaviorDirectory?true:false"> -->
     
 <vs-row>
@@ -11,11 +14,11 @@
       <vs-col type="flex" vs-justify="center" vs-align="center" vs-w="4">    
       </vs-col>
     </vs-row> -->
-     <vs-popup class="holamundo"  title="Readme" :active.sync="isReadmeModalActive">
+     <!-- <vs-popup class="holamundo"  title="Readme" :active.sync="activeReadmePrompt">
       <p>
-        {{$store.state.Addon.readme}}
+        {{$store.state.Addon.openReadmeAddon}}
       </p>
-    </vs-popup>
+    </vs-popup> -->
   </div>
 </template>
 
@@ -28,7 +31,9 @@ import { mapGetters, mapActions } from 'vuex'
     name: 'addon-view',
     data(){
       return {
-          isReadmeModalActive : false
+          activeReadmePrompt : false,
+          // readmeTitle : "",
+          // readmeText : ""
       }
     },
     components: { AddonCard },
@@ -54,11 +59,13 @@ import { mapGetters, mapActions } from 'vuex'
         // this.selectLanguage = this.$store.state.Addon.setting.selectLanguage || 'en'
         // return Object.keys(this.$store.state.Locales.locales)
       },
+      readmeTitle(){ return this.$store.state.Addon.openReadmeAddon.name || ''},
+      readmeText(){ return this.$store.state.Addon.openReadmeAddon.readme || ''},
       // getTreeOfSaviorDirectory(){
         // return this.$store.getters('getTreeOfSaviorDirectory')
         
       // }
-      ...mapGetters(['getTreeOfSaviorDirectory','getFilterdAddonList'])
+      ...mapGetters(['getTreeOfSaviorDirectory','getFilterdAddonList','getReadmeTitle','getReadmeText'])
     },
     methods: {
       open () {
@@ -77,7 +84,8 @@ import { mapGetters, mapActions } from 'vuex'
         //  this.$store.dispatch('initAddon',this.$translate)
       },
       openReadme(index){
-        // this.isReadmeModalActive = true
+        console.log('open radme')
+        this.activeReadmePrompt = true
       },
       changeLanguage(){
         // this.$translate.setLang(this.selectLanguage)
@@ -146,5 +154,12 @@ import { mapGetters, mapActions } from 'vuex'
     margin-bottom: 0px;
     margin-top: 6px;  
     vertical-align: middle;
-   }
+  }
+
+.vs-dialog {
+  max-width: 60% !important;
+  overflow: scroll !important;
+  background-color: #212121 !important
+}
+
 </style>

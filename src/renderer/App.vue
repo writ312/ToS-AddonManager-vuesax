@@ -19,7 +19,7 @@
         Toast
       },
       created:function(){
-         ipcRenderer.send('initalize', 'ping')
+        ipcRenderer.send('initalize', 'ping')
           ipcRenderer.on('initalize', (event, {list,setting}) => {
             console.log(list)
             this.$store.commit('initalize',{
@@ -37,4 +37,29 @@ html, body{
   /* font-family:'JosefinSans','Questrial', Arial, Helvetica,"Noto Sans JP", sans-serif; */
   font-family: Arial, Helvetica,"Noto Sans JP", sans-serif;
 }
+
+  /* dark theme colors */
+  body{
+    background-color: #303030;
+    color : white
+  }
+  .vs-sidebar {
+    background-color: #424242 !important
+  }
+  .vs-divider--text {
+  background-color: transparent !important;
+  color : white !important
+
+  }
+
+  .vs-card--header {
+    background-color: #424242;
+  }
+  .vs-card--media{
+    background-color: #212121;
+  }
+  .vs-tabs--li button {
+    color : white;
+  }
+
 </style>  
